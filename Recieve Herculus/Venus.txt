@@ -5,6 +5,8 @@ li x28, 0x790C # AXI_STROBE
 li x29, 0x7910 # AXI_CONTROL
 li x24, 0x7914 # Recieved Data
 li x23, 0x7000 # RED LED
+li x22, 0x7020 # HEX0
+li x21, 0x7021 # HEX1
 
 #set strobe = 4'b1111
 addi x1, x0, 0xF
@@ -44,5 +46,10 @@ sw x1, 0(x29) #start_read = 1
 
 LOOP1:
 lw x1, 0(x24) # Address of Recieved Data
+andi x5, x1, 0xF
+andi x6, x1, 0xF0
+srli x6, x6, 4
+sb x5, 0(x22) # HEX0
+sb x6, 0(x21) # HEX1
 sw x1, 0(x23)
 j LOOP1
