@@ -1,0 +1,55 @@
+li x25, 0x7900 # AXI_ADDR
+li x26, 0x7904 # AXI_DATA
+li x27, 0x7908 # AXI_SEL
+li x28, 0x790C # AXI_STROBE
+li x29, 0x7910 # AXI_CONTROL
+li x24, 0x7914 # Recieved Data
+li x23, 0x7000 # RED LED
+li x22, 0x7020 # HEX0
+li x21, 0x7021 # HEX1
+
+#set strobe = 4'b1111
+addi x1, x0, 0xF
+sw x1, 0(x28)
+
+#set psel = 1
+addi x1, x0, 0x1
+sw x1, 0(x27)
+
+#set parity_type and baudrate
+addi x1, x0, 0x4
+sw x1, 0(x25) #addr = 32'h4
+addi x1, x0, 0xE
+sw x1, 0(x26) #data = 32'hE
+addi x1, x0, 0x1
+sw x1, 0(x29) #start_write = 1
+
+addi x1, x0, 0x0
+sw x1, 0(x29) #start_write = 0
+
+#assert rx_enable
+addi x1, x0, 0x0
+sw x1, 0(x25) #addr = 32'h0
+addi x1, x0, 0x3
+sw x1, 0(x26) #data = 32'h3
+addi x1, x0, 0x1
+sw x1, 0(x29) #start_write = 1
+
+addi x1, x0, 0x0
+sw x1, 0(x29) #start_write = 0
+
+#READ recieved data
+addi x1, x0, 0xC
+sw x1, 0(x25) #addr = 32'hC
+addi x1, x0, 0x2
+sw x1, 0(x29) #start_read = 1
+
+LOOP1:
+lw x1, 0(x24) # Address of Recieved Data
+andi x5, x1, 0xF
+andi x6, x1, 0xF0
+srli x6, x6, 4
+sb x5, 0(x22) # HEX0
+sb x6, 0(x21) # HEX1
+sw x1, 0(x23)
+j LOOP1

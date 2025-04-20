@@ -1,0 +1,59 @@
+// Transmit to Herculus, DATA from SW[7:0], tx_enable from SW[9] is condition to assert tx by writing AXI
+li x19, 0x7800 #SW
+li x20, 0x7020  #HEX0
+li x21, 0x7021  #HEX1
+li x25, 0x7900 # AXI_ADDR
+li x26, 0x7904 # AXI_DATA
+li x27, 0x7908 # AXI_SEL
+li x28, 0x790C # AXI_STROBE
+li x29, 0x7910 # AXI_CONTROL
+
+#set strobe = 4'b1111
+addi x1, x0, 0xF
+sw x1, 0(x28)
+
+#set psel = 1
+addi x1, x0, 0x1
+sw x1, 0(x27)
+
+
+#set parity_type and baudrate
+addi x1, x0, 0x4
+sw x1, 0(x25) #addr = 32'h4
+addi x1, x0, 0xE
+sw x1, 0(x26) #data = 32'hE
+addi x1, x0, 0x1
+sw x1, 0(x29) #start_write = 1
+
+addi x1, x0, 0x0
+sw x1, 0(x29) #start_write = 0
+
+Loop1:
+addi x1, x0, 0x0
+sw x1, 0(x25) #addr = 32'h0
+lw x1, 0(x19) # From SW
+srli x1, x1, 9 # tx_enable
+sw x1, 0(x26) #data = tx_enable
+addi x1, x0, 0x1
+sw x1, 0(x29) #start_write = 1
+
+addi x1, x0, 0x0
+sw x1, 0(x29) #start_write = 0
+#Input Data
+addi x1, x0, 0xC
+sw x1, 0(x25) #addr = 32'hC
+lb x1, 0(x19) #From SW
+sw x1, 0(x26) #data = SW
+andi x5, x1, 0xF
+andi x6, x1, 0xF0
+srli x6, x6, 4
+sb x5, 0(x20) # HEX0
+sb x6, 0(x21) # HEX1
+sw x1, 0(x23)
+addi x1, x0, 0x1
+sw x1, 0(x29) #start_write = 1
+
+addi x1, x0, 0x0
+sw x1, 0(x29) #start_write = 0
+
+jal x0 Loop1
